@@ -1,0 +1,96 @@
+@ExtendWith(MockitoExtension.class)
+class CheckClientDataServiceTest {
+
+ ⁣ ⁣ ⁣ ⁣@Mock
+ ⁣ ⁣ ⁣ ⁣private Sup sup;
+
+ ⁣ ⁣ ⁣ ⁣@Mock
+ ⁣ ⁣ ⁣ ⁣private Person person;
+
+ ⁣ ⁣ ⁣ ⁣@Mock
+ ⁣ ⁣ ⁣ ⁣private Profile profile;
+
+ ⁣ ⁣ ⁣ ⁣@InjectMocks
+ ⁣ ⁣ ⁣ ⁣private CheckClientDataService checkClientData;
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckIncapacitatedEmptyList() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getProfile()).thenReturn(profile);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(profile.getCapability()).thenReturn(Collections.emptyList());
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertDoesNotThrow(() -> checkClientData.checkCapacityPerson(person));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckIncapacitated() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getProfile()).thenReturn(profile);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(sup.getClientIncapacityCheck()).thenReturn(true);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(profile.getCapability()).thenReturn(Collections.singletonList(IncapacitateReason.AGE_YOUNG));
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertThrows(CheckClientDataException.class, () -> checkClientData.checkCapacityPerson(person));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckInvalidVisionFalse() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(sup.getClientInvalidVisionCheck()).thenReturn(false);
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertDoesNotThrow(() -> checkClientData.isBlind(person));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckInvalidVisionTrueWithoutState() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getProfile()).thenReturn(profile);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(sup.getClientInvalidVisionCheck()).thenReturn(true);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(profile.getInvalidVision()).thenReturn(false);
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertDoesNotThrow(() -> checkClientData.isBlind(person));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckInvalidVisionTrueWithState() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getProfile()).thenReturn(profile);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(sup.getClientInvalidVisionCheck()).thenReturn(true);
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(profile.getInvalidVision()).thenReturn(true);
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertThrows(CheckClientDataException.class, () -> checkClientData.isBlind(person));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckAvailableOMSWithEmptyOms() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getImAgreements()).thenReturn(Collections.emptyList());
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertThrows(CheckClientDataException.class, () -> checkClientData.checkAvailableOMS(person.getImAgreements()));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckAvailableOMSWithGoodOms() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣var person = new Person();
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣person.setImAgreements(buildPaymentAccounts());
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertDoesNotThrow(() -> checkClientData.checkAvailableOMS(person.getImAgreements()));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckAvailableOMSWithWrongCodeMetal() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣List<IMAgreement> imAgreementList = buildPaymentAccountWithWrongCode();
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getImAgreements()).thenReturn(imAgreementList);
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertThrows(CheckClientDataException.class, () -> checkClientData.checkAvailableOMS(person.getImAgreements()));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckAvailableOMSWithCloseStatus() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣List<IMAgreement> imAgreementList = buildPaymentAccountWithCloseStatus();
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getImAgreements()).thenReturn(imAgreementList);
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertThrows(CheckClientDataException.class, () -> checkClientData.checkAvailableOMS(person.getImAgreements()));
+ ⁣ ⁣ ⁣ ⁣}
+
+ ⁣ ⁣ ⁣ ⁣@Test
+ ⁣ ⁣ ⁣ ⁣void testCheckAvailableOMSWithExpiredDate() {
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣List<IMAgreement> imAgreementList = buildPaymentAccountWithExpiredDate();
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣when(person.getImAgreements()).thenReturn(imAgreementList);
+
+ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣ ⁣assertThrows(CheckClientDataException.class, () -> checkClientData.checkAvailableOMS(person.getImAgreements()));
+ ⁣ ⁣ ⁣ ⁣}
+}
